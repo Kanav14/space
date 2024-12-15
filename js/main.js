@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const snakeBtn = document.getElementById('snake-btn');
     const pongBtn = document.getElementById('pong-btn');
     const memoryBtn = document.getElementById('memory-btn');
-    const flappyBtn = document.getElementById('flappy-btn');
+    const tetrisBtn = document.getElementById('tetris-btn'); // Updated from flappy-btn
 
     // Import game scripts dynamically
     function loadGame(gameScript) {
@@ -31,5 +31,5 @@ document.addEventListener('DOMContentLoaded', () => {
     snakeBtn.addEventListener('click', () => loadGame('./games/snake-game.js'));
     pongBtn.addEventListener('click', () => loadGame('./games/pong-game.js'));
     memoryBtn.addEventListener('click', () => loadGame('./games/memory-game.js'));
-    flappyBtn.addEventListener('click', () => loadGame('./games/flappy-bird.js'));
+    tetrisBtn.addEventListener('click', () => loadGame('./games/tetris-game.js')); // Updated from flappy
 });
