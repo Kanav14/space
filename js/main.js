@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     const gameContainer = document.getElementById('game-container');
-    const invadersBtn = document.getElementById('invaders-btn');
-    const asteroidBtn = document.getElementById('asteroid-btn');
-    const lunarBtn = document.getElementById('lunar-btn');
-    const rocketBtn = document.getElementById('rocket-btn');
+    const snakeBtn = document.getElementById('snake-btn');
+    const pongBtn = document.getElementById('pong-btn');
+    const memoryBtn = document.getElementById('memory-btn');
+    const flappyBtn = document.getElementById('flappy-btn');
 
     // Import game scripts dynamically
     function loadGame(gameScript) {
@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event listeners for game buttons
-    invadersBtn.addEventListener('click', () => loadGame('./games/space-invaders.js'));
-    asteroidBtn.addEventListener('click', () => loadGame('./games/asteroid-dodger.js'));
-    lunarBtn.addEventListener('click', () => loadGame('./games/lunar-lander.js'));
-    rocketBtn.addEventListener('click', () => loadGame('./games/rocket-rescue.js'));
+    snakeBtn.addEventListener('click', () => loadGame('./games/snake-game.js'));
+    pongBtn.addEventListener('click', () => loadGame('./games/pong-game.js'));
+    memoryBtn.addEventListener('click', () => loadGame('./games/memory-game.js'));
+    flappyBtn.addEventListener('click', () => loadGame('./games/flappy-bird.js'));
 });
