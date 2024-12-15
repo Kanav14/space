@@ -1,4 +1,4 @@
-// Sound Effects Management with Mute Functionality
+// sound-manager.js
 const SoundManager = {
     isMuted: false,
     sounds: {
@@ -12,51 +12,42 @@ const SoundManager = {
     play(soundName) {
         const sound = this.sounds[soundName];
         if (sound && !this.isMuted) {
-            sound.currentTime = 0; // Reset sound to start
-            sound.play().catch(error => {
-                console.warn(`Error playing sound ${soundName}:`, error);
-            });
+            try {
+                sound.currentTime = 0;
+                sound.play().catch(error => {
+                    console.warn(`Error playing sound ${soundName}:`, error);
+                });
+            } catch (error) {
+                console.warn(`Playback error for ${soundName}:`, error);
+            }
         }
     },
 
     createSpeakerButton() {
         const button = document.createElement('button');
         button.classList.add('speaker-button');
-        button.innerHTML = '🔊'; // Speaker icon
-        button.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #00CC00;
-            color: black;
-            border: 2px solid #00CC00;
-            padding: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 1000;
-            font-family: 'Press Start 2P', cursive;
-        `;
+        button.innerHTML = '🔊';
 
         button.addEventListener('click', () => {
             this.isMuted = !this.isMuted;
             
             if (this.isMuted) {
-                button.innerHTML = '🔇'; // Muted speaker icon
+                button.innerHTML = '🔇';
                 button.style.backgroundColor = '#CC0000';
                 button.style.borderColor = '#CC0000';
                 
-                // Mute all sounds
+                // Properly mute all sounds
                 Object.values(this.sounds).forEach(sound => {
-                    sound.volume = 0;
+                    sound.muted = true;
                 });
             } else {
-                button.innerHTML = '🔊'; // Speaker icon
+                button.innerHTML = '🔊';
                 button.style.backgroundColor = '#00CC00';
                 button.style.borderColor = '#00CC00';
                 
-                // Restore volume
+                // Unmute all sounds
                 Object.values(this.sounds).forEach(sound => {
-                    sound.volume = 1;
+                    sound.muted = false;
                 });
             }
         });
@@ -65,24 +56,26 @@ const SoundManager = {
     },
 
     init() {
-        // Preload sounds
-        Object.values(this.sounds).forEach(sound => {
+        // Preload and set up sounds
+        Object.entries(this.sounds).forEach(([name, sound]) => {
             sound.preload = 'auto';
+            // Set a reasonable volume
+            sound.volume = 0.5;
         });
 
         // Add global click sound to buttons
-        document.querySelectorAll('.pixelated-button').forEach(button => {
-            button.addEventListener('click', () => this.play('buttonClick'));
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.pixelated-button').forEach(button => {
+                button.addEventListener('click', () => this.play('buttonClick'));
+            });
 
-        // Add speaker button to body
-        document.body.appendChild(this.createSpeakerButton());
+            // Add speaker button to body
+            document.body.appendChild(this.createSpeakerButton());
+        });
     }
 };
 
-// Initialize sound effects when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    SoundManager.init();
-});
+// Initialize sound management
+SoundManager.init();
 
 export default SoundManager;
