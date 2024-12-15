@@ -4,13 +4,15 @@ export function initGame(canvas) {
     // Game settings
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
+    const gameSpeed = 5; // Reduced speed
+    let frameCount = 0;
     
     // Snake
     const snake = [{x: 10, y: 10}];
     let dx = 1;
     let dy = 0;
     
-    // Food
+    // Space station food
     let food = generateFood();
     
     // Score
@@ -18,8 +20,29 @@ export function initGame(canvas) {
     
     // Game loop
     function gameLoop() {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frameCount++;
+        if (frameCount % gameSpeed !== 0) {
+            requestAnimationFrame(gameLoop);
+            return;
+        }
+        
+        // Clear canvas with space background
+        ctx.fillStyle = '#000033';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add stars
+        for (let i = 0; i < 50; i++) {
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.arc(
+                Math.random() * canvas.width, 
+                Math.random() * canvas.height, 
+                Math.random() * 2, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
         
         // Move snake
         const newHead = {
@@ -43,8 +66,8 @@ export function initGame(canvas) {
             snake.pop();
         }
         
-        // Draw snake
-        ctx.fillStyle = '#00FF00';
+        // Draw snake (space rover segments)
+        ctx.fillStyle = '#00FFFF';
         snake.forEach(segment => {
             ctx.fillRect(
                 segment.x * gridSize, 
@@ -54,38 +77,48 @@ export function initGame(canvas) {
             );
         });
         
-        // Draw food
-        ctx.fillStyle = '#FF0000';
-        ctx.fillRect(
-            food.x * gridSize, 
-            food.y * gridSize, 
-            gridSize - 2, 
-            gridSize - 2
+        // Draw space station food
+        ctx.fillStyle = '#00FF00';
+        ctx.beginPath();
+        ctx.arc(
+            food.x * gridSize + gridSize/2, 
+            food.y * gridSize + gridSize/2, 
+            gridSize/2 - 2, 
+            0, 
+            Math.PI * 2
         );
+        ctx.fill();
         
         // Draw score
         ctx.fillStyle = '#00FF00';
         ctx.font = '20px Courier New';
-        ctx.fillText(`Score: ${score}`, 10, 30);
+        ctx.fillText(`Space Stations Captured: ${score}`, 10, 30);
+        
+        requestAnimationFrame(gameLoop);
     }
     
-    // Generate food
+    // Generate food (space station)
     function generateFood() {
-        return {
-            x: Math.floor(Math.random() * tileCount),
-            y: Math.floor(Math.random() * tileCount)
-        };
+        let newFood;
+        do {
+            newFood = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+        } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+        return newFood;
     }
     
     // Game over
     function gameOver() {
-        alert(`Game Over! Score: ${score}`);
+        alert(`Mission Terminated! Space Stations Captured: ${score}`);
         snake.length = 1;
         snake[0] = {x: 10, y: 10};
         dx = 1;
         dy = 0;
         score = 0;
         food = generateFood();
+        gameLoop();
     }
     
     // Keyboard controls
@@ -99,10 +132,5 @@ export function initGame(canvas) {
     });
     
     // Start game loop
-    function animate() {
-        gameLoop();
-        requestAnimationFrame(animate);
-    }
-    
-    animate();
+    gameLoop();
 }
