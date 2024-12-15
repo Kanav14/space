@@ -1,115 +1,136 @@
 export function initGame(canvas) {
     const ctx = canvas.getContext('2d');
     
-    const cardWidth = 100;
-    const cardHeight = 150;
-    const cardPadding = 10;
-    const columns = 4;
-    const rows = 3;
+    // Bird settings
+    const bird = {
+        x: canvas.width / 4,
+        y: canvas.height / 2,
+        radius: 20,
+        velocity: 0,
+        gravity: 0.5,
+        jumpStrength: -10
+    };
     
-    const symbols = ['🚀', '👽', '🌍', '🛸', '🌟', '🌙', '🛰️', '🚁', '🛩️'];
-    const cards = [];
-    let flippedCards = [];
-    let matchedPairs = 0;
+    // Pipe settings
+    const pipes = [];
+    const pipeWidth = 50;
+    const pipeGap = 200;
     
-    // Prepare cards
-    function initCards() {
-        const selectedSymbols = symbols.slice(0, (columns * rows) / 2);
-        const cardSymbols = [...selectedSymbols, ...selectedSymbols];
-        
-        // Shuffle symbols
-        for (let i = cardSymbols.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [cardSymbols[i], cardSymbols[j]] = [cardSymbols[j], cardSymbols[i]];
-        }
-        
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < columns; col++) {
-                cards.push({
-                    x: col * (cardWidth + cardPadding),
-                    y: row * (cardHeight + cardPadding),
-                    symbol: cardSymbols.pop(),
-                    isFlipped: false,
-                    isMatched: false
-                });
-            }
-        }
-    }
+    // Game state
+    let score = 0;
+    let gameOver = false;
     
-    // Draw cards
-    function drawCards() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Spawn pipes
+    function spawnPipes() {
+        const holeHeight = canvas.height / 2;
+        const holeY = Math.random() * (canvas.height - holeHeight);
         
-        cards.forEach(card => {
-            ctx.fillStyle = card.isMatched ? '#00FF00' : 
-                           card.isFlipped ? '#00FFFF' : '#003366';
-            ctx.fillRect(card.x, card.y, cardWidth, cardHeight);
-            
-            ctx.fillStyle = '#FFFFFF';
-            if (card.isFlipped || card.isMatched) {
-                ctx.font = '40px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(card.symbol, card.x + cardWidth/2, card.y + cardHeight/2 + 20);
-            }
+        pipes.push({
+            x: canvas.width,
+            topHeight: holeY,
+            bottomY: holeY + pipeGap
         });
-    }
-    
-    // Handle card click
-    canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        const clickedCard = cards.find(card => 
-            x >= card.x && x <= card.x + cardWidth &&
-            y >= card.y && y <= card.y + cardHeight &&
-            !card.isFlipped && !card.isMatched
-        );
-        
-        if (clickedCard) {
-            clickedCard.isFlipped = true;
-            flippedCards.push(clickedCard);
-            
-            if (flippedCards.length === 2) {
-                setTimeout(() => checkMatch(), 1000);
-            }
-        }
-        
-        drawCards();
-    });
-    
-    // Check card match
-    function checkMatch() {
-        const [card1, card2] = flippedCards;
-        
-        if (card1.symbol === card2.symbol) {
-            card1.isMatched = true;
-            card2.isMatched = true;
-            matchedPairs++;
-            
-            if (matchedPairs === cards.length / 2) {
-                alert('Congratulations! You won!');
-                resetGame();
-            }
-        } else {
-            card1.isFlipped = false;
-            card2.isFlipped = false;
-        }
-        
-        flippedCards = [];
-        drawCards();
     }
     
     // Reset game
     function resetGame() {
-        cards.length = 0;
-        flippedCards = [];
-        matchedPairs = 0;
-        initCards();
-        drawCards();
+        bird.y = canvas.height / 2;
+        bird.velocity = 0;
+        pipes.length = 0;
+        score = 0;
+        gameOver = false;
     }
     
-    // Initialize game
-    initCards();
-    drawCards();
+    // Game loop
+    function gameLoop() {
+        if (gameOver) {
+            // Game over screen
+            ctx.fillStyle = 'red';
+            ctx.font = '40px Courier New';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+            ctx.font = '20px Courier New';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+            return;
+        }
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Bird physics
+        bird.velocity += bird.gravity;
+        bird.y += bird.velocity;
+        
+        // Spawn pipes periodically
+        if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 300) {
+            spawnPipes();
+        }
+        
+        // Move and draw pipes
+        pipes.forEach((pipe, index) => {
+            pipe.x -= 3;
+            
+            // Draw pipes
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(pipe.x, 0, pipeWidth, pipe.topHeight);
+            ctx.fillRect(pipe.x, pipe.bottomY, pipeWidth, canvas.height - pipe.bottomY);
+            
+            // Collision detection
+            if (
+                bird.x + bird.radius > pipe.x && 
+                bird.x - bird.radius < pipe.x + pipeWidth
+            ) {
+                if (
+                    bird.y - bird.radius < pipe.topHeight || 
+                    bird.y + bird.radius > pipe.bottomY
+                ) {
+                    gameOver = true;
+                }
+            }
+            
+            // Remove off-screen pipes and update score
+            if (pipe.x + pipeWidth < 0) {
+                pipes.splice(index, 1);
+                score++;
+            }
+        });
+        
+        // Draw bird
+        ctx.beginPath();
+        ctx.fillStyle = '#FFFF00';
+        ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw score
+        ctx.fillStyle = '#00FF00';
+        ctx.font = '20px Courier New';
+        ctx.fillText(`Score: ${score}`, 10, 30);
+        
+        // Game over conditions
+        if (bird.y + bird.radius > canvas.height || bird.y - bird.radius < 0) {
+            gameOver = true;
+        }
+        
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // Jump control
+    function jump() {
+        if (!gameOver) {
+            bird.velocity = bird.jumpStrength;
+        } else {
+            resetGame();
+        }
+    }
+    
+    // Event listeners
+    canvas.addEventListener('click', jump);
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            jump();
+        }
+    });
+    
+    // Start game loop
+    gameLoop();
 }
