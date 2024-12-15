@@ -3,14 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Classic Arcade Games</title>
+    <title>🎮 90s Arcade Games</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <div class="scanlines"></div>
-    <div class="container">
+    <div id="loader" class="loader">
+        <div class="loader-inner">
+            <div class="loader-line-wrap">
+                <div class="loader-line"></div>
+            </div>
+            <div class="loader-line-wrap">
+                <div class="loader-line"></div>
+            </div>
+            <div class="loader-line-wrap">
+                <div class="loader-line"></div>
+            </div>
+            <div class="loader-line-wrap">
+                <div class="loader-line"></div>
+            </div>
+            <div class="loader-line-wrap">
+                <div class="loader-line"></div>
+            </div>
+        </div>
+        <div class="loader-text">Loading Retro Games...</div>
+    </div>
+    <div class="container" id="main-content" style="display:none;">
         <header>
-            <h1>🕹️ Classic Arcade Games Collection 🎮</h1>
+            <h1>🕹️ Retro Arcade Games Collection 🎮</h1>
         </header>
         
         <div class="game-grid">
@@ -40,6 +59,7 @@
         </div>
         <div id="game-container"></div>
     </div>
+    <script src="js/loader.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
