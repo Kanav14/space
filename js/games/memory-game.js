@@ -7,10 +7,35 @@ export function initGame(canvas) {
     const columns = 4;
     const rows = 3;
     
-    const symbols = ['🚀', '👽', '🌍', '🛸', '🌟', '🌙', '🛰️', '🚁', '🛩️'];
+    // Space-themed symbols
+    const symbols = [
+        '🚀', '🛰️', '🌍', '👨‍🚀', '🌠', 
+        '🛸', '🌙', '☄️', '🌌', '🌗', 
+        '🌑', '🌒'
+    ];
     const cards = [];
     let flippedCards = [];
     let matchedPairs = 0;
+    
+    // Create starry background
+    function drawStarryBackground() {
+        ctx.fillStyle = '#000033';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw stars
+        for (let i = 0; i < 100; i++) {
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+            ctx.arc(
+                Math.random() * canvas.width, 
+                Math.random() * canvas.height, 
+                Math.random() * 2, 
+                0, 
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
     
     // Prepare cards
     function initCards() {
@@ -26,8 +51,8 @@ export function initGame(canvas) {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < columns; col++) {
                 cards.push({
-                    x: col * (cardWidth + cardPadding),
-                    y: row * (cardHeight + cardPadding),
+                    x: col * (cardWidth + cardPadding) + 50,
+                    y: row * (cardHeight + cardPadding) + 50,
                     symbol: cardSymbols.pop(),
                     isFlipped: false,
                     isMatched: false
@@ -38,20 +63,32 @@ export function initGame(canvas) {
     
     // Draw cards
     function drawCards() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear and redraw starry background
+        drawStarryBackground();
         
         cards.forEach(card => {
+            // Card color based on state
             ctx.fillStyle = card.isMatched ? '#00FF00' : 
                            card.isFlipped ? '#00FFFF' : '#003366';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = card.isFlipped ? '#00FFFF' : '#00FF00';
             ctx.fillRect(card.x, card.y, cardWidth, cardHeight);
+            ctx.shadowBlur = 0;
             
-            ctx.fillStyle = '#FFFFFF';
+            // Draw symbol if flipped or matched
             if (card.isFlipped || card.isMatched) {
+                ctx.fillStyle = '#FFFFFF';
                 ctx.font = '40px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText(card.symbol, card.x + cardWidth/2, card.y + cardHeight/2 + 20);
             }
         });
+        
+        // Draw mission status
+        ctx.fillStyle = '#00FF00';
+        ctx.font = '20px Courier New';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Mission Progress: ${matchedPairs}/${cards.length/2}`, 10, 30);
     }
     
     // Handle card click
@@ -88,8 +125,15 @@ export function initGame(canvas) {
             matchedPairs++;
             
             if (matchedPairs === cards.length / 2) {
-                alert('Congratulations! You won!');
-                resetGame();
+                // Mission complete screen
+                drawStarryBackground();
+                ctx.fillStyle = '#00FFFF';
+                ctx.font = '40px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('Mission Accomplished!', canvas.width/2, canvas.height/2);
+                ctx.font = '20px Courier New';
+                ctx.fillText(`All Space Stations Mapped`, canvas.width/2, canvas.height/2 + 50);
+                return;
             }
         } else {
             card1.isFlipped = false;
