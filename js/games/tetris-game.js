@@ -1,3 +1,4 @@
+// tetris-game.js
 export function initGame(canvas) {
     const ctx = canvas.getContext('2d');
     const gridSize = 30;
@@ -15,6 +16,13 @@ export function initGame(canvas) {
         [[0,1,1],[1,1,0]]
     ];
 
+    // Sound effects (local to avoid import issues)
+    const sounds = {
+        rotate: new Audio('https://opengameart.org/sites/default/files/Rotate_0.wav'),
+        clear: new Audio('https://opengameart.org/sites/default/files/8-bit%20powerup%20finished.wav'),
+        gameOver: new Audio('https://freesound.org/data/previews/171/171848_2437798-lq.mp3')
+    };
+
     let board = Array(rows).fill().map(() => Array(cols).fill(0));
     let currentPiece = null;
     let currentPosition = { x: 0, y: 0 };
@@ -23,17 +31,8 @@ export function initGame(canvas) {
     let dropSpeed = 1000; // 1 second per drop
     let lastDropTime = 0;
 
-    // Sound effects
-    const SoundManager = {
-    sounds: {
-        tetrisRotate: new Audio('https://opengameart.org/sites/default/files/Rotate_0.wav'),
-        tetrisClear: new Audio('https://opengameart.org/sites/default/files/8-bit%20powerup%20finished.wav'),
-        tetrisGameOver: new Audio('https://freesound.org/data/previews/171/171848_2437798-lq.mp3'),
-        buttonClick: new Audio('https://opengameart.org/sites/default/files/Menu%20Selection%20Click%20-%2001.wav'),
-        gameStart: new Audio('https://opengameart.org/sites/default/files/start-game_0.wav')
-    },
-
     function drawBoard() {
+        // Clear canvas
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -44,6 +43,50 @@ export function initGame(canvas) {
                 ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
             }
         }
+
+        // Draw placed pieces
+        board.forEach((row, y) => {
+            row.forEach((cell, x) => {
+                if (cell) {
+                    ctx.fillStyle = '#0F0';
+                    ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                }
+            });
+        });
+
+        // Draw current piece
+        if (currentPiece) {
+            currentPiece.forEach((row, dy) => {
+                row.forEach((value, dx) => {
+                    if (value) {
+                        ctx.fillStyle = '#00F';
+                        ctx.fillRect(
+                            (currentPosition.x + dx) * gridSize, 
+                            (currentPosition.y + dy) * gridSize, 
+                            gridSize, 
+                            gridSize
+                        );
+                    }
+                });
+            });
+        }
+
+        // Draw score
+        ctx.fillStyle = '#0F0';
+        ctx.font = '20px "Press Start 2P"';
+        ctx.fillText(`Score: ${score}`, 10, 30);
+
+        // Draw game over
+        if (gameOver) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#F00';
+            ctx.font = '40px "Press Start 2P"';
+            ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+            ctx.font = '20px "Press Start 2P"';
+            ctx.fillText('Click to Restart', canvas.width / 2 - 100, canvas.height / 2 + 50);
+        }
+    }
 
     function createPiece() {
         const piece = pieces[Math.floor(Math.random() * pieces.length)];
@@ -155,16 +198,20 @@ export function initGame(canvas) {
         }
     }
 
+    // Reset game function
+    function resetGame() {
+        board = Array(rows).fill().map(() => Array(cols).fill(0));
+        score = 0;
+        gameOver = false;
+        lastDropTime = 0;
+        createPiece();
+        requestAnimationFrame(gameLoop);
+    }
+
     // Controls
     canvas.addEventListener('click', () => {
         if (gameOver) {
-            // Reset game
-            board = Array(rows).fill().map(() => Array(cols).fill(0));
-            score = 0;
-            gameOver = false;
-            lastDropTime = 0;
-            createPiece();
-            requestAnimationFrame(gameLoop);
+            resetGame();
         } else {
             rotatePiece();
         }
