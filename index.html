@@ -8,15 +8,12 @@
 </head>
 <body>
     <div id="loader" class="loader">
-        <div class="loader-container">
-            <div class="loading-bar"></div>
-            <div class="loading-bar"></div>
-            <div class="loading-bar"></div>
-            <div class="loading-bar"></div>
+        <div class="retro-background"></div>
+        <div class="loading-text">Booting Arcade System</div>
+        <div class="loading-container">
             <div class="loading-bar"></div>
         </div>
-        <div class="loading-text">LOADING</div>
-        <div class="loading-subtext">Booting Retro Arcade...</div>
+        <div class="loading-subtext">Initializing Retro Games...</div>
     </div>
     <div class="container" id="main-content" style="display:none;">
         <header>
@@ -50,7 +47,8 @@
         </div>
         <div id="game-container"></div>
     </div>
-    <script src="js/loader.js"></script>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/sound-manager.js"></script>
+    <script type="module" src="js/loader.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
