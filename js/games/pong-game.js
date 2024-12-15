@@ -1,12 +1,39 @@
 export function initGame(canvas) {
     const ctx = canvas.getContext('2d');
     
-    // Paddle settings
+    // Radar/communication screen effect
+    function drawRadarBackground() {
+        ctx.fillStyle = '#000033';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Radar grid
+        ctx.strokeStyle = '#00FF00';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 50) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += 50) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+        
+        // Scan line effect
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+        const scanLineY = (Date.now() / 10) % canvas.height;
+        ctx.fillRect(0, scanLineY, canvas.width, 5);
+    }
+    
+    // Paddle settings (communication antennas)
     const paddleHeight = 100;
     const paddleWidth = 10;
     
-    // Ball settings
-    const ball = {
+    // Communication signal settings
+    const signal = {
         x: canvas.width / 2,
         y: canvas.height / 2,
         radius: 10,
@@ -15,100 +42,99 @@ export function initGame(canvas) {
         dy: 5
     };
     
-    // Paddles
-    const leftPaddle = {
+    // Communication antennas
+    const leftAntenna = {
         x: 0,
         y: canvas.height / 2 - paddleHeight / 2,
         speed: 10
     };
     
-    const rightPaddle = {
+    const rightAntenna = {
         x: canvas.width - paddleWidth,
         y: canvas.height / 2 - paddleHeight / 2,
         speed: 10
     };
     
     // Score
-    let playerScore = 0;
-    let aiScore = 0;
+    let groundControlScore = 0;
+    let spaceStationScore = 0;
     
     // Game loop
     function gameLoop() {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Draw radar background
+        drawRadarBackground();
         
-        // Draw paddles
-        ctx.fillStyle = '#00FF00';
-        ctx.fillRect(leftPaddle.x, leftPaddle.y, paddleWidth, paddleHeight);
-        ctx.fillRect(rightPaddle.x, rightPaddle.y, paddleWidth, paddleHeight);
+        // Draw communication antennas
+        ctx.fillStyle = '#00FFFF';
+        ctx.fillRect(leftAntenna.x, leftAntenna.y, paddleWidth, paddleHeight);
+        ctx.fillRect(rightAntenna.x, rightAntenna.y, paddleWidth, paddleHeight);
         
-        // Draw ball
+        // Draw communication signal
         ctx.beginPath();
         ctx.fillStyle = '#FFFFFF';
-        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.arc(signal.x, signal.y, signal.radius, 0, Math.PI * 2);
         ctx.fill();
         
-        // Move ball
-        ball.x += ball.dx;
-        ball.y += ball.dy;
+        // Move signal
+        signal.x += signal.dx;
+        signal.y += signal.dy;
         
-        // Ball collision with top and bottom
-        if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-            ball.dy *= -1;
+        // Signal collision with top and bottom
+        if (signal.y - signal.radius < 0 || signal.y + signal.radius > canvas.height) {
+            signal.dy *= -1;
         }
         
-        // AI paddle movement
-        if (rightPaddle.y + paddleHeight / 2 < ball.y) {
-            rightPaddle.y += rightPaddle.speed;
+        // AI antenna movement
+        if (rightAntenna.y + paddleHeight / 2 < signal.y) {
+            rightAntenna.y += rightAntenna.speed;
         } else {
-            rightPaddle.y -= rightPaddle.speed;
+            rightAntenna.y -= rightAntenna.speed;
         }
         
-        // Ball collision with paddles
+        // Boundary checks for antennas
+        leftAntenna.y = Math.max(0, Math.min(canvas.height - paddleHeight, leftAntenna.y));
+        rightAntenna.y = Math.max(0, Math.min(canvas.height - paddleHeight, rightAntenna.y));
+        
+        // Signal collision with antennas
         if (
-            (ball.x - ball.radius < leftPaddle.x + paddleWidth && 
-             ball.y > leftPaddle.y && 
-             ball.y < leftPaddle.y + paddleHeight) ||
-            (ball.x + ball.radius > rightPaddle.x && 
-             ball.y > rightPaddle.y && 
-             ball.y < rightPaddle.y + paddleHeight)
+            (signal.x - signal.radius < leftAntenna.x + paddleWidth && 
+             signal.y > leftAntenna.y && 
+             signal.y < leftAntenna.y + paddleHeight) ||
+            (signal.x + signal.radius > rightAntenna.x && 
+             signal.y > rightAntenna.y && 
+             signal.y < rightAntenna.y + paddleHeight)
         ) {
-            ball.dx *= -1;
+            signal.dx *= -1;
         }
         
         // Score points
-        if (ball.x < 0) {
-            aiScore++;
-            resetBall();
+        if (signal.x < 0) {
+            spaceStationScore++;
+            resetSignal();
         }
-        if (ball.x > canvas.width) {
-            playerScore++;
-            resetBall();
+        if (signal.x > canvas.width) {
+            groundControlScore++;
+            resetSignal();
         }
         
         // Draw score
         ctx.fillStyle = '#00FF00';
         ctx.font = '20px Courier New';
-        ctx.fillText(`Player: ${playerScore}  AI: ${aiScore}`, canvas.width / 2 - 100, 30);
+        ctx.fillText(`Ground Control: ${groundControlScore}  Space Station: ${spaceStationScore}`, 
+            canvas.width / 2 - 200, 30);
     }
     
-    // Reset ball
-    function resetBall() {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        ball.dx *= -1;
+    // Reset signal
+    function resetSignal() {
+        signal.x = canvas.width / 2;
+        signal.y = canvas.height / 2;
+        signal.dx *= -1;
     }
     
-    // Player paddle control
+    // Player antenna control
     document.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
-        leftPaddle.y = e.clientY - rect.top - paddleHeight / 2;
-        
-        // Boundary check
-        if (leftPaddle.y < 0) leftPaddle.y = 0;
-        if (leftPaddle.y + paddleHeight > canvas.height) {
-            leftPaddle.y = canvas.height - paddleHeight;
-        }
+        leftAntenna.y = e.clientY - rect.top - paddleHeight / 2;
     });
     
     // Start game loop
